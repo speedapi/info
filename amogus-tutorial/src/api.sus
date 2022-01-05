@@ -1,0 +1,48 @@
+include impostor.sus
+
+enum(2) ErrorCode {
+    @> Email supplied to `sign_up()` is already in use <@
+    email_in_use(0),
+    @> Username supplied to `sign_up()` has already been taken <@
+    username_taken(1),
+    @> Email supplied to `log_in()` is not associated with an account <@
+    invalid_email(2),
+    @> Password supplied to `log_in()` is invalid <@
+    invalid_password(3)
+}
+
+enum(1) State {
+    @> The client is yet to log in <@
+    awaiting_login(0)
+}
+set default_state awaiting_login
+
+@> Creates a user account <@
+globalmethod sign_up(0) {
+    @> User's email address <@
+    email: Str[match: /[^ @]@[^ @]/]; # please don't use this regex in production
+    @> Desired username <@
+    username: Str[match: /\w*/, len: 3..32];
+    @> Desired password <@
+    password: Str[len: 6..64];
+
+    states { awaiting_login }
+    errors { email_in_use, username_taken }
+}
+
+@> Logs in to an account for the rest of this session <@
+globalmethod log_in(1) {
+    @> User's email <@
+    email: Str[match: /[^ @]@[^ @]/];
+    @> User's password <@
+    password: Str[len: 6..64];
+
+    returns {
+        @> Username associated with that email <@
+        username: Str[match: /\w*/, len: 3..32];
+    }
+
+    ratelimit 3 every 60s;
+    states { awaiting_login }
+    errors { invalid_email, invalid_password }
+}
