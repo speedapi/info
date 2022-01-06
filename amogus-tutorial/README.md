@@ -397,10 +397,10 @@ const contents = `
 # Welcome!
 This is my first article on this service. Hope you're having a **wonderful** time!
 `;
-const id = (await session.Article.create({
+const { id } = await session.Article.create({
     title: "My First Article On High",
     contents: contents
-})).id;
+});
 ```
 
 Dynamic methods, however, do, and they're called like this:

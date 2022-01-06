@@ -15,10 +15,10 @@ const contents = `
 # Welcome!
 This is my first article on this service. Hope you're having a **wonderful** time!
 `;
-const id = (await session.Article.create({
+const { id } = await session.Article.create({
     title: "My First Article On High",
     contents: contents
-})).id;
+});
 
 const article = await session.Article.get(id);
 await article.postComment({
