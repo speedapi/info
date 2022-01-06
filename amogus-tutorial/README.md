@@ -232,7 +232,7 @@ entity Article(1) {
 ```
   - Every entity must have an `id` of type `Int(8)`. The value of this field distinguishes particular instances of this entity, and the server must ensure that there's only 0 or 1 entity instances with a given **id**.
   - The `Int(8)` type is an 8-byte (64-bit) nonnegative (0 or more) integer. Notice that the `8` is inside parentheses instead of square brackets because it's an **argument** to this type, not a validator. `Str`s do not require any arguments, so that's why we omitted the parentheses before. `Int`s can be validated too, by testing whether or not the value is in a range like this: `Int(1)[val: 30..40]`.
-  - This `opt(0)` means that the field is **optional**. Why would such an important field be optional? Because we may get an article in two different contexts: first, in response to a "I know the id, give me the article" request, and second, in response to a "give me the list of all articles that user [id] has published". It's more efficient to skip sending the contents in the latter case because we don't need them anyway. AMOGUS uses the number `0` to distinguish this particular optional field from other ones. It can range from `0` to `127`, giving you a maximum of `128` optional fields per entity type. The number of normal (required) fields is unlimited.
+  - This `opt(0)` means that the field is **optional**. Why would such an important field be optional? Because we may get an article in two different contexts: first, in response to a "I know the id, give me the article" request, and second, in response to a "give me the list of all articles that user [id] has published". It's more efficient to skip sending the contents in the latter case because we don't need them anyway. AMOGUS uses the number `0` to distinguish this particular optional field from other ones. It can range from `0` to `127`, giving you a maximum of `128` optional fields per entity type. The number of normal (required) fields is unlimited. **Note**: Method parameters/return values can be marked as optional as well.
   - Notice that we don't restrict `contents` by length simply because the `Str` type itself limits the length: it can't exceed 65536 bytes because of the way data is encoded. **Note**: Bytes does not equal characters! A Latin character may only take up one byte; Cyrillic ones usually take up two; Chinese and Japanese symbols tend to span 3-4 bytes; and emojis can take up significantly more space - from 3-4 bytes for simple ones to something like 🤦🏼‍♂️ that [actually spans 5 codepoints and takes up 17 whole bytes](https://hsivonen.fi/string-length/)! Don't worry: 64 KB is plenty of data - this tutorial up to this point (excluding the images) is around 11.5 KB.
 
 ### Publishing articles
@@ -251,11 +251,12 @@ entity Article(1) {
             id: Int(8);
         }
 
+        ratelimit 1 every 1m;
         states { normal }
     }
 }
 ```
-You can have up to `128` static methods per entity.
+Value `127` is reserved for the "get entity by ID" operation, thus you can have up to `127` static methods per entity.
 
 ### Liking articles
 We're going to add a like counter and a method to like an article. Because this `like` method is attached to a particular article, we're going to make it a **dynamic method**
@@ -263,10 +264,43 @@ We're going to add a like counter and a method to like an article. Because this 
 entity Article(1) {
     # ...
     likes: Int(3); # allows us to count up to ~16.7M likes
-    #...
+    # ...
     method like(0) {
+        ratelimit 2 every 10s; # this rate limit applies to calls to `Article.like()` across all `Article` instances
         states { normal }
     }
 }
 ```
 You can have up to `128` dynamic methods per entity. Notice that `create(0)` and `like(0)` are not in conflict because static methods are separate from dynamic ones.
+
+### User entities
+Now that we know what entities are, we can create a `User` entity and update our `log_in` method so that it returns a reference to the user account that your backend has hopefully created when we called `sign_up`
+```sus
+entity User(0) {
+    id: Int(8);
+    name: Str[match: /\w*/, len: 3..32];
+    avatar: Str[match: /https?:\/\/.*\.(webp|png|jpe?g)/, len: 0..128];
+
+    method report(0) {
+        reason: Str[len: 10+];
+        ratelimit 1 every 1m;
+    }
+
+    method get_articles(1) {
+        returns {
+            articles: List(Int(8), 1);
+        }
+        ratelimit 1 every 1s;
+    }
+}
+
+globalmethod log_in(1) {
+    # ... 
+    returns {
+        @> User account associated with that email <@
+        user: Int(8);
+    }
+    # ...
+}
+```
+New type! `List` takes two arguments: the type of the elements and the header length. It's set to `1` byte or 8 bits, so this list can't have more than `255` elements. `List`s can be validated by their length, e.g. `List(Int(1), 1)[len: 10..20]`. Values inside the list can be validated too! `List(Int(1)[val: 30..40], 1)[len: 10..20]` is a valid expression.

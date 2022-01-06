@@ -39,8 +39,8 @@ globalmethod log_in(1) {
     password: Str[len: 6..64];
 
     returns {
-        @> Username associated with that email <@
-        username: Str[match: /\w*/, len: 3..32];
+        @> User account associated with that email <@
+        user: Int(8);
     }
 
     ratelimit 3 every 60s;
@@ -48,24 +48,56 @@ globalmethod log_in(1) {
     errors { invalid_email, invalid_password }
 }
 
+entity User(0) {
+    id: Int(8);
+    @> Username <@
+    name: Str[match: /\w*/, len: 3..32];
+    @> Avatar URL <@
+    avatar: Str[match: /https?:\/\/.*\.(webp|png|jpe?g)/, len: 0..128];
+
+    @> Report this user to the moderation team <@
+    method report(0) {
+        @> Reason for reporting <@
+        reason: Str[len: 10+];
+        ratelimit 1 every 1m;
+    }
+
+    @> Get all articles published by this user <@
+    method get_articles(1) {
+        returns {
+            @> List of all articles published by this user <@
+            articles: List(Int(8), 1);
+        }
+        ratelimit 1 every 1s;
+    }
+}
+
 entity Article(1) {
     id: Int(8);
+    @> Title <@
     title: Str[len: 5..140];
+    @> Contents (formatted with Markdown) <@
     contents: opt(0) Str;
+    @> Like counter <@
     likes: Int(3); # allows us to count up to ~16.7M likes
 
     staticmethod create(0) {
+        @> Title <@
         title: Str[len: 5..140];
+        @> Contents (formatted with Markdown) <@
         contents: Str;
 
         returns {
+            @> Created article ID <@
             id: Int(8);
         }
 
+        ratelimit 1 every 1m;
         states { normal }
     }
 
     method like(0) {
+        ratelimit 2 every 10s;
         states { normal }
     }
 }
