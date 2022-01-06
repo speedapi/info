@@ -47,3 +47,25 @@ globalmethod log_in(1) {
     states { awaiting_login }
     errors { invalid_email, invalid_password }
 }
+
+entity Article(1) {
+    id: Int(8);
+    title: Str[len: 5..140];
+    contents: opt(0) Str;
+    likes: Int(3); # allows us to count up to ~16.7M likes
+
+    staticmethod create(0) {
+        title: Str[len: 5..140];
+        contents: Str;
+
+        returns {
+            id: Int(8);
+        }
+
+        states { normal }
+    }
+
+    method like(0) {
+        states { normal }
+    }
+}
