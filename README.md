@@ -1,5 +1,11 @@
 <p align="center"><img src="logos/logo_color_on_white.png" height="128"/></p>
 
+![Sus level](https://img.shields.io/badge/sus%20level-150%25-red)
+![License](https://img.shields.io/github/license/amogus-api/susc)
+![Languages](https://img.shields.io/badge/languages-html%7Cts-orange)
+![Batteries](https://img.shields.io/badge/batteries-not%20included-red)
+![PRs and issues](https://img.shields.io/badge/PRs%20and%20issues-welcome-brightgreen)
+
 # Asynchronous Method and Object Governed Upstream Service (AMOGUS)
 AMOGUS is a protocol framework designed to be used in high-throughput real-time APIs.
   - **End-to-end API development.** AMOGUS is an integrated tool for API development, not just a standalone data representation format like JSON or MessagePack.
@@ -18,14 +24,8 @@ AMOGUS consists of four closely linked parts:
   - **Wire protocol implementations.** A library for each of the supported languages that can, using output from the compiler, perform actual communication.
   - **Implied Minimal Protocol Object, Structure and Thing Omission Resolution (IMPOSTOR).** Basically just a fancy name for the SUS standard library that defines some basic common things. Not required but highly recommended. Use it by writing `include impostor.sus`
 
-# Typical workflow
-  - **Write SUS.** Define all methods, entities and other things.
-  - **Compile SUS.** Use the `set output <language list>` directive in your source code or pass `-l` to the compiler to specify the list of output languages.
-  ```
-  $ susc MAIN_FILE
-  ```
-  - **Copy output files to your project directory(-ies).**
-  - **Use APIs provided by AMOGUS.** The data structures that contain type annotations if your language supports them are included in the output. The output module may ask you to install a supporting library and provide instructions on how to do so.
+All official repositories are hosted under [this](https://github.com/amogus-api) organization.
 
 # Examples
+  - https://github.com/amogus-api/info/tree/master/amogus-tutorial
   - https://github.com/yamka-app/sus
