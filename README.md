@@ -1,7 +1,6 @@
-<p align="center">
-<img src="logos/logo_color_on_white.png" height="128"/>
-<h1>Asynchronous Method and Object Governed Upstream Service (AMOGUS)</h1>
-</p>
+<p align="center"><img src="logos/logo_color_on_white.png" height="128"/></p>
+
+# Asynchronous Method and Object Governed Upstream Service (AMOGUS)
 AMOGUS is a protocol framework designed to be used in high-throughput real-time APIs.
   - **End-to-end API development.** AMOGUS is an integrated tool for API development, not just a standalone data representation format like JSON or MessagePack.
   - **Transaction-based bidirectional data transfer.** Once a connection is established, both the client and the server can send data to each other at any time. Client-to-server requests are encapsulated in something called a transaction, a concept that makes it easy to manage multiple concurrent requests that may require some data later on - like if you have an endpoint that only requires a CAPTCHA only some of the time.
