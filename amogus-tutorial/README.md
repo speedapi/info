@@ -233,7 +233,7 @@ entity Article(1) {
   - Every entity must have an `id` of type `Int(8)`. The value of this field distinguishes particular instances of this entity, and the server must ensure that there's only 0 or 1 entity instances with a given **id**.
   - The `Int(8)` type is an 8-byte (64-bit) nonnegative (0 or more) integer. Notice that the `8` is inside parentheses instead of square brackets because it's an **argument** to this type, not a validator. `Str`s do not require any arguments, so that's why we omitted the parentheses before. `Int`s can be validated too, by testing whether or not the value is in a range like this: `Int(1)[val: 30..40]`.
   - This `opt(0)` means that the field is **optional**. Why would such an important field be optional? Because we may get an article in two different contexts: first, in response to a "I know the id, give me the article" request, and second, in response to a "give me the list of all articles that user [id] has published". It's more efficient to skip sending the contents in the latter case because we don't need them anyway. AMOGUS uses the number `0` to distinguish this particular optional field from other ones. It can range from `0` to `127`, giving you a maximum of `128` optional fields per entity type. The number of normal (required) fields is unlimited. **Note**: Method parameters/return values can be marked as optional as well.
-  - Notice that we don't restrict `contents` by length simply because the `Str` type itself limits the length: it can't exceed 65536 bytes because of the way data is encoded. **Note**: Bytes does not equal characters! A Latin character may only take up one byte; Cyrillic ones usually take up two; Chinese and Japanese symbols tend to span 3-4 bytes; and emojis can take up significantly more space - from 3-4 bytes for simple ones to something like 🤦🏼‍♂️ that [actually spans 5 codepoints and takes up 17 whole bytes](https://hsivonen.fi/string-length/)! Don't worry: 64 KB is plenty of data - this tutorial up to this point (excluding the images) is around 11.5 KB.
+  - Notice that we don't restrict `contents` by length simply because the `Str` type itself limits the length: it can't exceed 65536 bytes because of the way data is encoded. **Note**: Bytes does not equal characters! A Latin character may only take up one byte; Cyrillic ones usually take up two; Chinese and Japanese symbols tend to span 3-4 bytes; and emojis can take up significantly more space - from 3-4 bytes for simple ones to something like 🤦🏼‍♂️ that [actually spans 5 codepoints and takes up 17 whole bytes](https://hsivonen.fi/string-length/)! Don't worry: 64 KB is plenty of data - this tutorial up to this point (excluding the images) is around 11.5 KB. **Note**: The `Str[len]` validator validates length based on the number of Unicode codepoints, not the number of bytes. That emoji from before is thus going to be counted as 5 characters by `Str[len]`.
 
 ### Publishing articles
 We're going to create a **static method** in the `Article` entity. It's called a _static_ method because it's not attached to a particular instance of an entity, but it is attached to the entity type. _Global_ methods like the ones we created earlier are attached to neither.
@@ -284,6 +284,7 @@ entity User(0) {
     method report(0) {
         reason: Str[len: 10+];
         ratelimit 1 every 1m;
+        states { normal }
     }
 
     method get_articles(1) {
@@ -291,6 +292,7 @@ entity User(0) {
             articles: List(Int(8), 1);
         }
         ratelimit 1 every 1s;
+        states { normal }
     }
 }
 
@@ -304,3 +306,46 @@ globalmethod log_in(1) {
 }
 ```
 New type! `List` takes two arguments: the type of the elements and the header length. It's set to `1` byte or 8 bits, so this list can't have more than `255` elements. `List`s can be validated by their length, e.g. `List(Int(1), 1)[len: 10..20]`. Values inside the list can be validated too! `List(Int(1)[val: 30..40], 1)[len: 10..20]` is a valid expression.
+
+### Comments
+No new concepts here, we're just defining two `Article` methods and the `Comment` entity.
+```sus
+entity Article(1) {
+    # ...
+    method get_comments(1) {
+        returns {
+            comments: List(Int(8), 2);
+        }
+        ratelimit 1 every 1s;
+        states { normal }
+    }
+
+    method post_comment(2) {
+        text: Str[len: 1..280];
+        ratelimit 2 every 10s;
+        states { normal }
+    }
+}
+
+entity Comment(2) {
+    id: Int(8);
+    author: Int(8);
+    text: Str[len: 1..280];
+
+    method like(0) {
+        ratelimit 2 every 10s;
+        states { normal }
+    }
+}
+```
+
+### Done!
+Woohoo! We've successfully written our first SUS file. Now run
+```console
+$ susc -l html src/api.sus
+```
+again and browse the final docs.
+
+![](images/5.png)
+
+We have learned about almost anything there is to AMOGUS. The two things that we haven't talked about yet are **bitfields** and **confirmations**, the latter being an extremely powerful mechanism that we're going to explore later.

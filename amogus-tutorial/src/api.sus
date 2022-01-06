@@ -59,7 +59,9 @@ entity User(0) {
     method report(0) {
         @> Reason for reporting <@
         reason: Str[len: 10+];
+
         ratelimit 1 every 1m;
+        states { normal }
     }
 
     @> Get all articles published by this user <@
@@ -68,7 +70,9 @@ entity User(0) {
             @> List of all articles published by this user <@
             articles: List(Int(8), 1);
         }
+
         ratelimit 1 every 1s;
+        states { normal }
     }
 }
 
@@ -81,6 +85,7 @@ entity Article(1) {
     @> Like counter <@
     likes: Int(3); # allows us to count up to ~16.7M likes
 
+    @> Create an article <@
     staticmethod create(0) {
         @> Title <@
         title: Str[len: 5..140];
@@ -96,6 +101,41 @@ entity Article(1) {
         states { normal }
     }
 
+    @> Like an article <@
+    method like(0) {
+        ratelimit 2 every 10s;
+        states { normal }
+    }
+
+    @> Gets all comments on an article <@
+    method get_comments(1) {
+        returns {
+            @> All comments on an article <@
+            comments: List(Int(8), 2);
+        }
+
+        ratelimit 1 every 1s;
+        states { normal }
+    }
+
+    @> Posts a comment under an article <@
+    method post_comment(2) {
+        @> Contents <@
+        text: Str[len: 1..280];
+
+        ratelimit 2 every 10s;
+        states { normal }
+    }
+}
+
+entity Comment(2) {
+    id: Int(8);
+    @> Author <@
+    author: Int(8);
+    @> Contents <@
+    text: Str[len: 1..280];
+
+    @> Like a comment <@
     method like(0) {
         ratelimit 2 every 10s;
         states { normal }
