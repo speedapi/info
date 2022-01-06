@@ -170,3 +170,53 @@ globalmethod log_in(1) {
     errors { invalid_email, invalid_password }
 }
 ```
+
+### Generating docs
+Our API is quite far from done, but let's just see how the built-in doc generator works. Run this command:
+```console
+$ susc -l html src/api.sus
+```
+This command should create an `api_output` folder right next to the original file with an `html` directory inside it. Open `index.html` in a browser!
+
+![](images/1.png)
+
+This is `State`:
+
+![](images/2.png)
+
+Here's our `awaiting_login`. Where is that `normal` coming from though? Let's look inside the standard library that we included (`impostor.sus`)
+```sus
+@> Represents connection states <@
+enum(1) State {
+    normal(255)
+}
+```
+Even though this `State` enum has been defined two times in two separate files, susc combined these definitions into one enum! In other words,
+```sus
+enum(1) Name {
+    member_one(0)
+}
+enum(1) Name {
+    member_two(1)
+}
+```
+...is equivalent to the following:
+```sus
+enum(1) Name {
+    member_one(0),
+    member_two(1)
+}
+```
+...even if the definition is split across multiple files, as long as these files are `include`d.
+
+There's also somehow 11 whole members in the `ErrorCode` enum, even though we only defined 4 - the mechanism is the same.
+
+Lastly, you may have noticed these messages from the compiler:
+
+![](images/3.png)
+
+We don't yet have a logo for our service, nor do we have a name. I'm going to name it "High", because (as you could probably already tell) i'm not good at coming up with sensible names, and this imaginary project is not at all similar in concept to Medium. Let's put `set html_topbar_title High API` at the top of our file and run that command again:
+
+![](images/4.png)
+
+Excellent!
