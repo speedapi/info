@@ -393,11 +393,13 @@ If we correct the password to be a string, say `"123456"`, the error disappears.
 
 Static methods do not need an entity instance, and are called like this:
 ```ts
-const id = (await session.Article.create({
-    "title": "My First Article On High",
-    "contents": `
+const contents = `
 # Welcome!
-This is my first article on this service. Hope you're having a **wonderful** time!`
+This is my first article on this service. Hope you're having a **wonderful** time!
+`;
+const id = (await session.Article.create({
+    title: "My First Article On High",
+    contents: contents
 })).id;
 ```
 
@@ -405,6 +407,6 @@ Dynamic methods, however, do, and they're called like this:
 ```ts
 const article = await session.Article.get(id);
 await article.postComment({
-    "text": "I spent a lot of time working on this article! Please like if you choose to"
+    text: "I spent a lot of time working on this article! Please like if you choose to"
 });
 ```

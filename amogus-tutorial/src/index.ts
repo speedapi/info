@@ -11,14 +11,16 @@ await session.logIn({
     password: "123456"
 });
 
-const id = (await session.Article.create({
-    "title": "My First Article On High",
-    "contents": `
+const contents = `
 # Welcome!
-This is my first article on this service. Hope you're having a **wonderful** time!`
+This is my first article on this service. Hope you're having a **wonderful** time!
+`;
+const id = (await session.Article.create({
+    title: "My First Article On High",
+    contents: contents
 })).id;
 
 const article = await session.Article.get(id);
 await article.postComment({
-    "text": "I spent a lot of time working on this article! Please like if you can"
+    text: "I spent a lot of time working on this article! Please like if you can"
 });
