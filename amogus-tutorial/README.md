@@ -1,4 +1,4 @@
-This is a tutorial on how to write an AMOGUS-based API client for an imaginary article publishing service with **Typescript** and **Webpack**. Hopefully by the end of it you're going to be able to apply certain key concepts to your actual service.
+This is a tutorial on how to write an AMOGUS-based API client for an imaginary article publishing service with **TypeScript** and **Webpack**. Hopefully by the end of it you're going to be able to apply certain key concepts to your actual service.
 > All `npm` commands in this tutorial are going to be invoked with `pnpm` - a drop-in replacement that doesn't waste disk space. I recommend that you use it too, but you don't have to.
 
 ## Step 1. Creating a project and downloading the necessary tools
@@ -74,7 +74,7 @@ globalmethod sign_up(0) {
     errors { email_in_use, username_taken }
 }
 ```
-That `ErrorCode` **enum** describes all possible errors that all of the methods may return. That `2` means that the members are encoded using a 2-byte (16-bit) number, giving you a maximum of `65536` members. Each member also has a **value** associated with it - just like in the case of methods, it's used to identify them when sent over the wire. The `errors` declaration describes which of the errors this specific method may return. **Note**: the server also sends a human-readable error message along with this machine-readable code. What exactly is sent in that message is entirely up to you and is specified by the server code. **Note**: If any of the validations fail, the servers-side AMOGUS library will automatically return a `validation_failed` error before any data even reaches your code.
+That `ErrorCode` **enum** describes all possible errors that all of the methods may return. That `2` means that the members are encoded using a 2-byte (16-bit) number, giving you a maximum of `65536` members. Each member also has a **value** associated with it - just like in the case of methods, it's used to identify them when sent over the wire. The `errors` declaration describes which of the errors this specific method may return. **Note**: the server also sends a human-readable error message along with this machine-readable code. What exactly is sent in that message is entirely up to you and is specified by the server code. **Note**: If any of the validations fail, the server-side AMOGUS library will automatically return a `validation_failed` error before any data even reaches your code.
 
 ### Logging in
 Great! Now that the user has an account, they can log in. Just kidding! They can't, because we haven't yet written a method for that.
@@ -348,4 +348,63 @@ again and browse the final docs.
 
 ![](images/5.png)
 
+**Note**: This `ArticleFieldSelect` bitfield was generated automatically.
+
 We have learned about almost anything there is to AMOGUS. The two things that we haven't talked about yet are **bitfields** and **confirmations**, the latter being an extremely powerful mechanism that we're going to explore later.
+
+## Developing the client
+First of all, launch the compiler in watch mode in the background so that it provides TS declarations for the SUS file.
+```console
+$ susc --gen-ts src/api.sus
+OR
+$ susc -t src/api.sus
+```
+Put this in `index.ts`:
+```ts
+// import the libraries
+import { TlsClient } from "amogus-driver/transport/node";
+// load our protocol definition
+import * as api from "./api.sus";
+
+// create the session
+const session = api.bind(new TlsClient(api.specSpace, {
+    host: "my.awesomeservice.com",
+    port: 1234
+}));
+```
+If everything is working properly, IntelliSense should suggest all the things we've defined when you type `session.`:
+
+![](images/6.png)
+
+Try this:
+```ts
+await session.logIn({
+    email: "test@email.com",
+    password: 123
+});
+```
+Because we defined `password` to be a string and because TypeScript is awesome, the code above does not compile:
+
+![](images/7.png)
+
+If we correct the password to be a string, say `"123456"`, the error disappears.
+
+**Note**: Only the type is validated at compile time. Validators in square brackets run at run time. Even though we've specified a regex for our `email` field, TypeScript won't complain if we assign `"not.an.email"` to it.
+
+Static methods do not need an entity instance, and are called like this:
+```ts
+const id = (await session.Article.create({
+    "title": "My First Article On High",
+    "contents": `
+# Welcome!
+This is my first article on this service. Hope you're having a **wonderful** time!`
+})).id;
+```
+
+Dynamic methods, however, do, and they're called like this:
+```ts
+const article = await session.Article.get(id);
+await article.postComment({
+    "text": "I spent a lot of time working on this article! Please like if you choose to"
+});
+```
