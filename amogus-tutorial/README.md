@@ -367,7 +367,7 @@ import { TlsClient } from "amogus-driver/transport/node";
 import * as api from "./api.sus";
 
 // create the session
-const session = api.bind(new TlsClient(api.specSpace, {
+const session = api.$bind(new TlsClient(api.$specSpace, {
     host: "my.awesomeservice.com",
     port: 1234
 }));
@@ -405,7 +405,7 @@ const { id } = await session.Article.create({
 
 Dynamic methods, however, do, and they're called like this:
 ```ts
-const article = await session.Article.get(id);
+const article = await session.Article.$get(id); // `$get` is a standard wrapper for `get`
 await article.postComment({
     text: "I spent a lot of time working on this article! Please like if you choose to"
 });
@@ -440,16 +440,14 @@ You don't have to set up a server/client pair that communicates over some legiti
 import * as amogus from "amogus-driver";
 import * as api from "./test.sus";
 
-const { client, server } = amogus.transport.universal.createDummyPair(api.specSpace);
+type ApiType = ReturnType<typeof api.$specSpace>;
+const { client, server } = amogus.transport.universal.createDummyPair<ApiType>(api.$specSpace);
 
 // SERVER SIDE
-server.subscribe(async (event) => {
-    // only react to echo() invocations
-    if(!(event instanceof amogus.session.InvocationEvent))
-        return;
-    if(!(event.method instanceof api.Echo))
-        return;
-
+// the second argument is the state, we'll just ignore it for now
+const serverSession = new amogus.Server(server, null);
+const serverApi = api.$bind(server);
+serverSession.onInvocation("echo", async (method, _state) => {
     // ask the client to solve a captcha
     const { code } = await event.confirm(new api.Captcha(), { url: "https://example.com/amogus.png" });
 
@@ -457,12 +455,12 @@ server.subscribe(async (event) => {
     if(code === "amogus")
         await event.return({ str: `${event.params.str} (hi from the server)` });
     else
-        await event.error(api.ErrorCode.confirmation_failed, "captcha blah blah blah");
+        await event.error(serverApi.ErrorCode.confirmation_failed, "captcha blah blah blah");
 });
 
 
 // CLIENT SIDE
-const session = api.bind(client);
+const session = api.$bind(client);
 // invoke echo()
 const { str } = await session.echo({ str: "Hello, World!" }, async (conf) => {
     // reply with "amogus" to captcha requests
