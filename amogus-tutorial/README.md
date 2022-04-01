@@ -458,7 +458,10 @@ const listener = new amogus.transport.node.TlsListener<ApiType>(api.$specSpace, 
 });
 ```
 
-# Pushing entities to the client
+# Other features
+...that weren't touched upon in the High example
+
+## Pushing entities to the client
 Being a full-duplex protocol, AMOGUS allows the server to send data to the client without a prior request.
 ```ts
 // Here we're assuming that `client` is an instance of Session on the server side, like TlsServer or DummyServer, and that `boundApi` is the result of calling `api.$bind(client)`
@@ -483,7 +486,7 @@ client.subscribe((event) => {
 });
 ```
 
-# Confirmations
+## Confirmations
 `Confirmation`s are a way to request data from the client in the context of a method invocation by that client. In other words, it's a way to call methods on the client while that client is calling some method on the server. Take a look:
 ```sus
 include impostor.sus
@@ -529,7 +532,7 @@ const { str } = await session.echo({ str: "Hello, World!" }, async (conf) => {
 });
 ```
 
-# Rapid testing
+## Rapid testing
 You don't have to set up a server/client pair that communicates over some legitimate protocol like TCP. Instead, you can use the `createDummyPair` function that creates a server and a client that exchange data by passing `Buffer`s to each other. It's aimed primarily towards testing.
 
 ```ts
