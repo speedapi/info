@@ -12,16 +12,18 @@ const userDb: {
 } = {};
 
 // create a TLS listener (acceptor)
-new amogus.transport.node.TlsListener<ReturnType<typeof api.$specSpace>>(api.$specSpace, {
+type ApiType = ReturnType<typeof api.$specSpace>;
+new amogus.transport.node.TlsListener<ApiType>(api.$specSpace, {
     port: 1234,
     cert: fs.readFileSync(__dirname + "/certs/server.cert"),
     key: fs.readFileSync(__dirname + "/certs/server.key"),
     rejectUnauthorized: false
-}, (client) => {
+}, async (client) => {
     console.log("client connected");
     // the second argument is the initial state
     // it will be passed down to the method handlers, they can also modify it
-    const session = new amogus.Server(client, { userId: null });
+    type State = { userId?: number };
+    const session = new amogus.Server(client, { userId: null } as State);
     const boundApi = api.$bind(client);
 
     // sign_up() handler

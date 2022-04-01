@@ -411,29 +411,125 @@ await article.postComment({
 });
 ```
 
-# Rapid testing
-Consider the following SUS:
+## Developing the server
+The server-side API is inspired by the way GenServers work in Erlang and Elixir. `amogus-driver` keeps track of the clients and session states and calls your handler whenever some event happens. Servers are created like this:
+```ts
+import * as amogus from "amogus-driver";
+import * as api from "./api.sus";
+import * as fs from "fs";
+
+// Create a TLS listener (acceptor)
+type ApiType = ReturnType<typeof api.$specSpace>;
+const listener = new amogus.transport.node.TlsListener<ApiType>(api.$specSpace, {
+    port: 1234,
+    cert: fs.readFileSync(__dirname + "/certs/server.cert"), // read certs
+    key: fs.readFileSync(__dirname + "/certs/server.key")
+}, async (client) => {
+    console.log("client connected");
+    // `listener` is an instance if `TlsListener` that listens to incoming connections on a port and creates a `TlsServer` instance for each of them.
+    // Thus, `client` here is an instance of `TlsServer`.
+    
+    // Servers store an arbitrary value called the state; it gets passed to your event handlers. They can, in turn, modify it.
+    // We'll use an object to store the ID of the user
+    type State = { userId?: number };
+    const session = new amogus.Server(client, { userId: null } as State);
+    const boundApi = api.$bind(client); // use this instead of `api` to access the things you've defined
+
+    // sign_up() handler
+    session.onInvocation("sign_up", async (method, _state) => {
+        // TypeScript rocks!!!
+        const params = method.params; // { email: string, username: string, password: string }
+
+        // Find email/username duplicates
+        if(emailInUse(params.email)) { // we don't care how this function's defined at the moment
+            await method.error(boundApi.ErrorCode.email_in_use, "email already in use");
+            return;
+        } else if(nameInUse(params.username)) {
+            await method.error(boundApi.ErrorCode.username_taken, "username already taken");
+            return;
+        }
+
+        createUser(params);
+        await method.return({ }); // This method has no return values, but we still have to call .return, otherwise the client will timeout waiting for the response.
+
+        // We don't return anything here, so the state won't be modified.
+        // However, a `return { userId: 123 };` here will update the state.
+    });
+});
+```
+
+# Pushing entities to the client
+Being a full-duplex protocol, AMOGUS allows the server to send data to the client without a prior request.
+```ts
+// Here we're assuming that `client` is an instance of Session on the server side, like TlsServer or DummyServer, and that `boundApi` is the result of calling `api.$bind(client)`
+await client.pushEntity(new boundApi.User({
+    id: 123,
+    name: "Imaginary Name"
+}) as amogus.ValuedEntity);
+```
+To handle entity updates on the client side, we need to add an event handler
+```ts
+// Here we're assuming that `client` is an instance of Session on the _client_ side, like TlsClient or DummyClient, and that `session` is the result of calling `api.$bind(client)`
+client.subscribe((event) => {
+    if(event.type !== "entity_update") return;
+    const entity = event.entity;
+    // At this point we know that an entity has been sent to us, but we don't know which one.
+    // We can use TypeScript's `instanceof` to refine the type
+    if(entity instanceof session.User) {
+        // `entity` is now fully covered by TS
+        console.log(`The server has just pushed a User with ID ${entity.id} to us. Full value: ${entity.value}`);
+        // Note that `entity.property` is just an alias of `entity.value.property`
+    }
+});
+```
+
+# Confirmations
+`Confirmation`s are a way to request data from the client in the context of a method invocation by that client. In other words, it's a way to call methods on the client while that client is calling some method on the server. Take a look:
 ```sus
 include impostor.sus
 
 globalmethod echo(0) {
     str: Str;
-    returns {
-        str: Str;
-    }
+    returns { str: Str; }
     confirmations { Captcha }
 }
 
 confirmation Captcha(0) {
-    request {
-        url: Str;
-    }
-    response {
-        code: Str;
-    }
+    # here we're essentially defining a method on the client
+    # but one that can only be invoked in the context of a client-to-server call
+    request { url: Str; }
+    response { code: Str; }
 }
 ```
+Let's write a method handler that uses this confirmation
+```ts
+// Server side
+session.onInvocation("echo", async (method, _state) => {
+    // Here we're demonstrating that confirmations don't have to be always invoked
+    const suspicious = runBotDetection();
+    if(suspicious) {
+        const { url, code } = generateCaptcha();
+        const { code: response } = await method.confirm(new boundApi.Captcha(), { url });
+        if(response !== code) {
+            await method.error(boundApi.ErrorCode.validation_failed, "Invalid captcha");
+            return;
+        }
+    }
+    // The client isn't suspicious or it has passed the captcha
+    await method.return(method.params);
+});
 
+// Client side
+const { str } = await session.echo({ str: "Hello, World!" }, async (conf) => {
+    // At this point `conf` is any `amogus.Confirmation`, let's narrow it down
+    if(conf instanceof session.Captcha) {
+        console.log(`Got captcha with url ${conf.request.url}`);
+        return { code: "amogus" }; // our response
+    }
+});
+```
+
+# Rapid testing
 You don't have to set up a server/client pair that communicates over some legitimate protocol like TCP. Instead, you can use the `createDummyPair` function that creates a server and a client that exchange data by passing `Buffer`s to each other. It's aimed primarily towards testing.
 
 ```ts
@@ -443,31 +539,14 @@ import * as api from "./test.sus";
 type ApiType = ReturnType<typeof api.$specSpace>;
 const { client, server } = amogus.transport.universal.createDummyPair<ApiType>(api.$specSpace);
 
-// SERVER SIDE
-// the second argument is the state, we'll just ignore it for now
-const serverSession = new amogus.Server(server, null);
-const serverApi = api.$bind(server);
-serverSession.onInvocation("echo", async (method, _state) => {
-    // ask the client to solve a captcha
-    const { code } = await method.confirm(new api.Captcha(), { url: "https://example.com/amogus.png" });
+function server() {
+    const session = new amogus.Server(server, null);
+    const boundApi = api.$bind(server);
+    // ...
+}
 
-    // check captcha solution
-    if(code === "amogus")
-        await method.return({ str: `${method.params.str} (hi from the server)` });
-    else
-        await method.error(serverApi.ErrorCode.confirmation_failed, "captcha blah blah blah");
-});
-
-
-// CLIENT SIDE
-const session = api.$bind(client);
-// invoke echo()
-const { str } = await session.echo({ str: "Hello, World!" }, async (conf) => {
-    // reply with "amogus" to captcha requests
-    if(conf instanceof api.Captcha) {
-        console.log("captcha requested:", conf.request.url);
-        return { code: "amogus" };
-    }
-});
-console.log("got response:", str);
+function client() {
+    const session = api.$bind(client);
+    // ...
+}
 ```
