@@ -1,7 +1,9 @@
 {
     "compilerOptions": {
         "target": "es2017",
-        "module": "system",
+        "module": "commonjs",
         "moduleResolution": "node"
-    }
+    },
+    "include": ["src", "src/*_output/*.ts"],
+    "exclude": ["**/node_modules"]
 }

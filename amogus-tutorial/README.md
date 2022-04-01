@@ -410,3 +410,66 @@ await article.postComment({
     text: "I spent a lot of time working on this article! Please like if you choose to"
 });
 ```
+
+# Rapid testing
+Consider the following SUS:
+```sus
+include impostor.sus
+
+globalmethod echo(0) {
+    str: Str;
+    returns {
+        str: Str;
+    }
+    confirmations { Captcha }
+}
+
+confirmation Captcha(0) {
+    request {
+        url: Str;
+    }
+    response {
+        code: Str;
+    }
+}
+```
+
+You don't have to set up a server/client pair that communicates over some legitimate protocol like TCP. Instead, you can use the `createDummyPair` function that creates a server and a client that exchange data by passing `Buffer`s to each other. It's aimed primarily towards testing.
+
+```ts
+import * as amogus from "amogus-driver";
+import * as api from "./test.sus";
+
+const { client, server } = amogus.transport.universal.createDummyPair(api.specSpace);
+
+// SERVER SIDE
+server.subscribe(async (event) => {
+    // only react to echo() invocations
+    if(!(event instanceof amogus.session.InvocationEvent))
+        return;
+    if(!(event.method instanceof api.Echo))
+        return;
+
+    // ask the client to solve a captcha
+    const { code } = await event.confirm(new api.Captcha(), { url: "https://example.com/amogus.png" });
+
+    // check captcha solution
+    if(code === "amogus")
+        await event.return({ str: `${event.params.str} (hi from the server)` });
+    else
+        await event.error(api.ErrorCode.confirmation_failed, "captcha blah blah blah");
+});
+
+
+// CLIENT SIDE
+const session = api.bind(client);
+// invoke echo()
+const { str } = await session.echo({ str: "Hello, World!" }, async (conf) => {
+    // reply with "amogus" to captcha requests
+    if(conf instanceof api.Captcha) {
+        console.log("captcha requested:", conf.request.url);
+        return { code: "amogus" };
+    }
+});
+console.log("got response:", str);
+```

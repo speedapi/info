@@ -50,10 +50,12 @@ globalmethod log_in(1) {
 
 entity User(0) {
     id: Int(8);
+    @> Email address (only available to account owner) <@
+    email: opt(0) Str[match: /[^ @]@[^ @]/];
     @> Username <@
     name: Str[match: /\w*/, len: 3..32];
     @> Avatar URL <@
-    avatar: Str[match: /https?:\/\/.*\.(webp|png|jpe?g)/, len: 0..128];
+    avatar: opt(1) Str[match: /https?:\/\/.*\.(webp|png|jpe?g)/, len: 0..128];
 
     @> Report this user to the moderation team <@
     method report(0) {
@@ -67,8 +69,8 @@ entity User(0) {
     @> Get all articles published by this user <@
     method get_articles(1) {
         returns {
-            @> List of all articles published by this user <@
-            articles: List(Int(8), 1);
+            # @> List of all articles published by this user <@
+            # articles: List(Int(8), 1);
         }
 
         ratelimit 1 every 1s;
@@ -110,8 +112,8 @@ entity Article(1) {
     @> Gets all comments on an article <@
     method get_comments(1) {
         returns {
-            @> All comments on an article <@
-            comments: List(Int(8), 2);
+            # @> All comments on an article <@
+            # comments: List(Int(8), 2);
         }
 
         ratelimit 1 every 1s;
