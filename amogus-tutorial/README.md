@@ -449,13 +449,13 @@ const serverSession = new amogus.Server(server, null);
 const serverApi = api.$bind(server);
 serverSession.onInvocation("echo", async (method, _state) => {
     // ask the client to solve a captcha
-    const { code } = await event.confirm(new api.Captcha(), { url: "https://example.com/amogus.png" });
+    const { code } = await method.confirm(new api.Captcha(), { url: "https://example.com/amogus.png" });
 
     // check captcha solution
     if(code === "amogus")
-        await event.return({ str: `${event.params.str} (hi from the server)` });
+        await method.return({ str: `${method.params.str} (hi from the server)` });
     else
-        await event.error(serverApi.ErrorCode.confirmation_failed, "captcha blah blah blah");
+        await method.error(serverApi.ErrorCode.confirmation_failed, "captcha blah blah blah");
 });
 
 
