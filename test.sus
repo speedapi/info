@@ -1,3 +1,0 @@
-enum(1) State {
-    awaiting_login(0)
-}

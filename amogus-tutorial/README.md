@@ -333,12 +333,13 @@ $ susc -t src/api.sus
 Put this in `index.ts`:
 ```ts
 // import the libraries
-import { TlsClient } from "amogus-driver/transport/node";
+import * as amogus from "amogus-driver";
 // load our protocol definition
 import * as api from "./api.sus";
 
 // create the session
-const session = api.$bind(new TlsClient(api.$specSpace, {
+type ApiType = ReturnType<typeof api.$specSpace>;
+const session = api.$bind(new amogus.transport.node.TlsClient<ApiType>(api.$specSpace, {
     host: "my.awesomeservice.com",
     port: 1234
 }));
