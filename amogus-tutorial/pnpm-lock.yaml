@@ -2,12 +2,12 @@ lockfileVersion: 5.3
 
 specifiers:
   '@types/node': ^17.0.23
-  amogus-driver: ^0.12.0
+  amogus-driver: ^1.0.0-rc.1
   ts-node: ^10.7.0
   typescript: ^4.6.3
 
 dependencies:
-  amogus-driver: 0.12.0_typescript@4.6.3
+  amogus-driver: 1.0.0-rc.1_typescript@4.6.3
 
 devDependencies:
   '@types/node': 17.0.23
@@ -59,8 +59,8 @@ packages:
     hasBin: true
     dev: true
 
-  /amogus-driver/0.12.0_typescript@4.6.3:
-    resolution: {integrity: sha512-D61uUv6QrP08LUvYV2m75dsEczzBwespnLpRfVJwniUZwBRFMvEqmoOHkVbKAbcQbPP0JAqSQjVXjIuHPPz4Cg==}
+  /amogus-driver/1.0.0-rc.1_typescript@4.6.3:
+    resolution: {integrity: sha512-YLIR1KNoSBzZKEloB/aPG5PoKGyHGoUZ99gbQ8YW+yPhsyLxXt+9jzAiCxPhnad1jvsfVVHbv/GdiyKZ1c5fHg==}
     peerDependencies:
       typescript: ^4.6
     dependencies:

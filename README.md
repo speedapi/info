@@ -29,9 +29,3 @@ All official repositories are hosted under [this](https://github.com/amogus-api)
 # Examples
   - https://github.com/amogus-api/info/tree/master/amogus-tutorial
   - https://github.com/yamka-app/sus
-
-# 1.0.0-rc1 TODO:
-  - [x] `List` repr
-  - [x] Automatic validation
-  - [x] Rate limiters
-  - [ ] Exhaustive testing

@@ -525,3 +525,46 @@ function client() {
     // ...
 }
 ```
+
+## Compounds
+Compounds combine several fields together. They can be used like any other type, but unlike other data structures they can be used outside of an API setting, i.e. they allow you to use the same efficient serialization techniques that form the core of AMOGUS, but without wrapping it into methods, entities and other things. This method of using AMOGUS can be thought of as a replacement for standalone JSON, BSON, MessagePack and other similar things.
+```sus
+compound Color {
+    r: Int(1);
+    g: Int(1);
+    b: Int(1);
+}
+compound Style {
+    background: Color;
+    border: Color;
+}
+compound Config {
+    style: Style;
+    random_string_cuz_why_not: Str;
+    other_random_string: opt(0) Str; # optional fields are still supported
+}
+```
+Using this over JSON has advantages as well as disadvantages:
+  - This encoding is mega-super-duper efficient. With the strings set to `"foo"` and `"bar"` and irregardless of the other values, the whole `Config` compound will take **18** bytes, compared to an equivalent minified JSON (`{"style":{"background":{"r":123,"g":123,"b":123},"border":{"r":123,"g":123,"b":123}},"random_string_cuz_why_not":"foo","other_random_string":"bar"}`) which takes **147** whole bytes, which is **8 times** larger.
+  - Data is automatically validated without any external tools.
+  - A schema _is_ required, unlike with JSON.
+  - The serialized data doesn't make sense to humans, although this issue is shared by BSON and similar techniques.
+
+You can use it like this:
+```ts
+import { Serializer } from "amogus-driver";
+import { ConfigSpec } from "./config.sus";
+const serializer = new Serializer(ConfigSpec);
+
+let config = {
+    style: {
+        background: { r: 123, g: 12, b: 3 },
+        border: { r: 14, g: 213, b: 186 }
+    },
+    random_string_cuz_why_not: "foo",
+    other_random_string: "bar"
+};
+
+const binary = await serializer.serialize(config);
+config = await serializer.deserialize(binary);
+```
