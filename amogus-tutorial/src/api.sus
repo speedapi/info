@@ -12,12 +12,6 @@ enum(2) ErrorCode {
     invalid_password(3)
 }
 
-enum(1) State {
-    @> The client is yet to log in <@
-    awaiting_login(0)
-}
-set default_state awaiting_login
-
 @> Creates a user account <@
 globalmethod sign_up(0) {
     @> User's email address <@
@@ -27,7 +21,6 @@ globalmethod sign_up(0) {
     @> Desired password <@
     password: Str[len: 6..64];
 
-    states { awaiting_login }
     errors { email_in_use, username_taken }
 }
 
@@ -44,7 +37,6 @@ globalmethod log_in(1) {
     }
 
     ratelimit 3 every 60s;
-    states { awaiting_login }
     errors { invalid_email, invalid_password }
 }
 
@@ -63,18 +55,16 @@ entity User(0) {
         reason: Str[len: 10+];
 
         ratelimit 1 every 1m;
-        states { normal }
     }
 
     @> Get all articles published by this user <@
     method get_articles(1) {
         returns {
             # @> List of all articles published by this user <@
-            # articles: List(Int(8), 1);
+            articles: List(Int(8), 1);
         }
 
         ratelimit 1 every 1s;
-        states { normal }
     }
 }
 
@@ -100,13 +90,11 @@ entity Article(1) {
         }
 
         ratelimit 1 every 1m;
-        states { normal }
     }
 
     @> Like an article <@
     method like(0) {
         ratelimit 2 every 10s;
-        states { normal }
     }
 
     @> Gets all comments on an article <@
@@ -117,7 +105,6 @@ entity Article(1) {
         }
 
         ratelimit 1 every 1s;
-        states { normal }
     }
 
     @> Posts a comment under an article <@
@@ -126,7 +113,6 @@ entity Article(1) {
         text: Str[len: 1..280];
 
         ratelimit 2 every 10s;
-        states { normal }
     }
 }
 
@@ -140,6 +126,5 @@ entity Comment(2) {
     @> Like a comment <@
     method like(0) {
         ratelimit 2 every 10s;
-        states { normal }
     }
 }

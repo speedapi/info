@@ -20,13 +20,13 @@ async function main() {
     await session.signUp({
         email: "amogus@example.org",
         username: "amogus",
-        password: "1234"
+        password: "123456"
     });
     console.log("signed up");
     
     const { user: id } = await session.logIn({
         email: "amogus@example.org",
-        password: "1234"
+        password: "123456"
     });
     console.log(`logged in with ID ${id}`);
     

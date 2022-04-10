@@ -100,25 +100,6 @@ globalmethod log_in(1) {
 ```
 Now we have. Two new directives: `returns`, which specifies the return fields and `ratelimit` which specifies the rate limit. The time interval can be anything - from `[number]ms` to `[number]y`: `ms`, `s`, `m`, `h`, `d`, `mo`, `y`.
 
-How do you prevent someone from logging in twice? How do you make sure that once a user has logged in, they can't log in a second time? Or that they can't create another account while they're logged in? States! Take a look:
-```
-enum(1) State {
-    awaiting_login(0)
-}
-set default_state awaiting_login
-
-globalmethod sign_up(0) {
-    # ... all the stuff we've already written
-    states { awaiting_login }
-}
-
-globalmethod log_in(1) {
-    # ... all the stuff we've already written
-    states { awaiting_login }
-}
-```
-This `states` directive tells us that this method can only be called while the session is in the `awaiting_login` state. There's a second state defined by `impostor.sus`: `normal`. Your server code will have to switch the state from `awaiting_login` to `normal` once authentication succeeds. The `set default_state` directive tells us to start in the `awaiting_login` state - without that it'd start in `normal`.
-
 Let's sprinkle in some docstrings! They're different from comments: comments are completely ignored, whereas docstrings are emitted in the output, and are especially useful in combination with the `html` output module. **They** _support_ **_markdown_**!
 ```
 include impostor.sus
@@ -134,12 +115,6 @@ enum(2) ErrorCode {
     invalid_password(3)
 }
 
-enum(1) State {
-    @> The client is yet to log in <@
-    awaiting_login(0)
-}
-set default_state awaiting_login
-
 @> Creates a user account <@
 globalmethod sign_up(0) {
     @> User's email address <@
@@ -149,7 +124,6 @@ globalmethod sign_up(0) {
     @> Desired password <@
     password: Str[len: 6..64];
 
-    states { awaiting_login }
     errors { email_in_use, username_taken }
 }
 
@@ -166,7 +140,6 @@ globalmethod log_in(1) {
     }
 
     ratelimit 3 every 60s;
-    states { awaiting_login }
     errors { invalid_email, invalid_password }
 }
 ```
@@ -180,18 +153,25 @@ This command should create an `api_output` folder right next to the original fil
 
 ![](images/1.png)
 
-This is `State`:
-
-![](images/2.png)
-
-Here's our `awaiting_login`. Where is that `normal` coming from though? Let's look inside the standard library that we included (`impostor.sus`)
+There's somehow 11 whole members in the `ErrorCode` enum, even though we only defined 4. What? Let's look inside the standard library that we included (`impostor.sus`)
 ```sus
-@> Represents connection states <@
-enum(1) State {
-    normal(255)
+@> Represents operation error codes <@
+enum(2) ErrorCode {
+    @> Field value validation failed <@
+    validation_failed(65534),
+    @> Rate limit got exceeded <@
+    rate_limit(65533),
+    @> Confirmation check failed <@
+    confirmation_failed(65532),
+    @> EntityGet failed (invalid ID) <@
+    invalid_id(65531),
+    @> EntityGet failed (failed to apply modifiers) <@
+    invalid_get_modifier(65530),
+    @> EntityUpdate failed <@
+    invalid_entity(65529)
 }
 ```
-Even though this `State` enum has been defined two times in two separate files, susc combined these definitions into one enum! In other words,
+Even though this `ErrorCode` enum has been defined two times in two separate files, susc combined these definitions into one enum! In other words,
 ```sus
 enum(1) Name {
     member_one(0)
@@ -208,8 +188,6 @@ enum(1) Name {
 }
 ```
 ...even if the definition is split across multiple files, as long as these files are `include`d.
-
-There's also somehow 11 whole members in the `ErrorCode` enum, even though we only defined 4 - the mechanism is the same.
 
 Lastly, you may have noticed these messages from the compiler:
 
@@ -252,7 +230,6 @@ entity Article(1) {
         }
 
         ratelimit 1 every 1m;
-        states { normal }
     }
 }
 ```
@@ -267,7 +244,6 @@ entity Article(1) {
     # ...
     method like(0) {
         ratelimit 2 every 10s; # this rate limit applies to calls to `Article.like()` across all `Article` instances
-        states { normal }
     }
 }
 ```
@@ -284,7 +260,6 @@ entity User(0) {
     method report(0) {
         reason: Str[len: 10+];
         ratelimit 1 every 1m;
-        states { normal }
     }
 
     method get_articles(1) {
@@ -292,7 +267,6 @@ entity User(0) {
             articles: List(Int(8), 1);
         }
         ratelimit 1 every 1s;
-        states { normal }
     }
 }
 
@@ -317,13 +291,11 @@ entity Article(1) {
             comments: List(Int(8), 2);
         }
         ratelimit 1 every 1s;
-        states { normal }
     }
 
     method post_comment(2) {
         text: Str[len: 1..280];
         ratelimit 2 every 10s;
-        states { normal }
     }
 }
 
@@ -334,7 +306,6 @@ entity Comment(2) {
 
     method like(0) {
         ratelimit 2 every 10s;
-        states { normal }
     }
 }
 ```

@@ -31,7 +31,7 @@ All official repositories are hosted under [this](https://github.com/amogus-api)
   - https://github.com/yamka-app/sus
 
 # 1.0.0-rc1 TODO:
-  - [ ] `List` repr
-  - [ ] Automatic validation
-  - [ ] Rate limiters
-  - [ ] States
+  - [x] `List` repr
+  - [x] Automatic validation
+  - [x] Rate limiters
+  - [ ] Exhaustive testing
