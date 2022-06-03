@@ -568,3 +568,6 @@ let config = {
 const binary = await serializer.serialize(config);
 config = await serializer.deserialize(binary);
 ```
+
+## Partial list updates
+TODO
