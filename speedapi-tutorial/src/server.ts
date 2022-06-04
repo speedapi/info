@@ -1,10 +1,11 @@
-import * as amogus from "amogus-driver";
+import * as speedapi from "@speedapi/driver";
+import { TlsListener } from "@speedapi/driver/transport/node";
 import * as api from "./api_output/ts/index";
 import * as fs from "fs";
 
 const userDb: {
-    [id: number]: {
-        id: number;
+    [id: string]: {
+        id: bigint;
         email: string;
         name: string;
         password: string; // don't store passwords in plain text in production
@@ -13,7 +14,7 @@ const userDb: {
 
 // create a TLS listener (acceptor)
 type ApiType = ReturnType<typeof api.$specSpace>;
-new amogus.transport.node.TlsListener<ApiType>(api.$specSpace, {
+new TlsListener<ApiType>(api.$specSpace, {
     port: 1234,
     cert: fs.readFileSync(__dirname + "/certs/server.cert"),
     key: fs.readFileSync(__dirname + "/certs/server.key"),
@@ -22,8 +23,8 @@ new amogus.transport.node.TlsListener<ApiType>(api.$specSpace, {
     console.log("client connected");
     // the second argument is the initial state
     // it will be passed down to the method handlers, they can also modify it
-    type State = { userId?: number };
-    const session = new amogus.Server(client, { userId: null } as State);
+    type State = { userId?: bigint };
+    const session = new speedapi.Server(client, { userId: null } as State);
     const boundApi = api.$bind(client);
 
     // sign_up() handler
@@ -41,8 +42,8 @@ new amogus.transport.node.TlsListener<ApiType>(api.$specSpace, {
         }
 
         // create the user
-        const id = Math.floor(Math.random() * 100000); // don't do this in production
-        userDb[id] = { id, email: params.email, name: params.username, password: params.password };
+        const id = BigInt(Math.floor(Math.random() * 100000)); // don't do this in production
+        userDb[String(id)] = { id, email: params.email, name: params.username, password: params.password };
         console.log(`created user with id ${id}`);
         await method.return({ });
     });
@@ -73,22 +74,26 @@ new amogus.transport.node.TlsListener<ApiType>(api.$specSpace, {
         console.log(`user_get: user: ${params.id}`);
 
         // find the user
-        const user = userDb[params.id];
+        const user = userDb[String(params.id)];
         if(!user) {
             await method.error(boundApi.ErrorCode.invalid_id, "unknown entity");
             return;
         }
 
         // return the user
-        await method.return({ entity: new boundApi.User(user) as amogus.ValuedEntity });
+        await method.return({ entity: new boundApi.User(user) as speedapi.ValuedEntity });
 
         // push a fake update after one second (showcase!)
         setTimeout(async () => {
             await client.pushEntity(new boundApi.User({
                 id: state.userId,
-                name: "Amogus"
-            }) as amogus.ValuedEntity);
+                name: "SpeedAPI"
+            }) as speedapi.ValuedEntity);
         }, 1000);
+    });
+
+    session.onClose((state) => {
+        console.log(`client (id ${state.userId}) disconnected`);
     });
 });
 

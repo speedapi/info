@@ -1,7 +1,7 @@
-import * as amogus from "amogus-driver";
+import { TlsClient } from "@speedapi/driver/transport/node";
 import * as api from "./api_output/ts/index";
 
-const session = api.$bind(new amogus.transport.node.TlsClient(api.$specSpace, {
+const session = api.$bind(new TlsClient(api.$specSpace, {
     host: "localhost",
     port: 1234,
     rejectUnauthorized: false
@@ -18,14 +18,14 @@ async function main() {
     });
 
     await session.signUp({
-        email: "amogus@example.org",
-        username: "amogus",
+        email: "speedapi@example.org",
+        username: "speedapi",
         password: "123456"
     });
     console.log("signed up");
     
     const { user: id } = await session.logIn({
-        email: "amogus@example.org",
+        email: "speedapi@example.org",
         password: "123456"
     });
     console.log(`logged in with ID ${id}`);

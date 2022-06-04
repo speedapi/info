@@ -1,5 +1,5 @@
 {
-  "name": "amogus-tutorial",
+  "name": "speedapi-tutorial",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "amogus-driver": "^1.0.0-rc.1"
+    "@speedapi/driver": "^1.3.1"
   },
   "devDependencies": {
     "@types/node": "^17.0.23",

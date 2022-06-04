@@ -1,5 +1,5 @@
 include impostor.sus
-set html_topbar_title High API
+set html_topbar_title HighAPI
 
 enum(2) ErrorCode {
     @> Email supplied to `sign_up()` is already in use <@

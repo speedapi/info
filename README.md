@@ -1,31 +1,26 @@
-<p align="center"><img src="logos/logo_color_on_white.png" height="128"/></p>
-
-![Sus level](https://img.shields.io/badge/sus%20level-150%25-red)
-![License](https://img.shields.io/github/license/amogus-api/susc)
-![Languages](https://img.shields.io/badge/languages-html%7Cts-orange)
-![Batteries](https://img.shields.io/badge/batteries-not%20included-red)
+![License](https://img.shields.io/github/license/speedapi/susc)
+![Schema not included](https://img.shields.io/badge/schema-not%20included-red)
 ![PRs and issues](https://img.shields.io/badge/PRs%20and%20issues-welcome-brightgreen)
 
-# Asynchronous Method and Object Governed Upstream Service (AMOGUS)
-AMOGUS is a protocol framework designed to be used in high-throughput real-time APIs.
-  - **End-to-end API development.** AMOGUS is an integrated tool for API development, not just a standalone data representation format like JSON or MessagePack.
-  - **Transaction-based bidirectional data transfer.** Once a connection is established, both the client and the server can send data to each other at any time. Client-to-server requests are encapsulated in something called a transaction, a concept that makes it easy to manage multiple concurrent requests that may require some data later on - like if you have an endpoint that only requires a CAPTCHA only some of the time.
-  - **Smaller data representation.** REST uses JSON to represent structured data, which takes up significantly more space compared to AMOGUS.
-  - **Little to no need for validation.** Because JSON is very dynamic, the peer is able to send anything, including maliciously or accidentally malformed data that may pass the decoding stage but still compromise the system if no validation is implemented or if it's insufficient. By contrast, you have to define every data structure in AMOGUS. Malformed data will simply fail to decode.
+# What is SpeedAPI?
+This is a protocol toolkit designed to be used in high-throughput realtime APIs.
+  - **End-to-end API development.** SpeedAPI is an integrated tool for API development, not just a standalone data representation format like JSON or MessagePack. It can be used as such too!
+  - **Transaction-based bidirectional data transfer.** Once a connection is established, both the client and the server can send data to each other at any time. Client-to-server requests are encapsulated in concurrent transactions that may also require some data later on - like if you have an endpoint that only requires a CAPTCHA only some of the time.
+  - **Smaller data representation.** REST uses JSON to represent structured data, which takes up significantly more space compared to SpeedAPI.
 
-Of course, it's not without its disadvantages:
-  - **Binary data representation.** You can't easily make sense of the data like you can with JSON or HTTP just by taking a glance at it.
-  - **Static schema.** You have to define every data structure on all communicating sides. Failure to properly do so will lead to decoding errors.
+Some features are double-edged:
+  - **Static schemas** guarantee type safety **but** don't let you exchange structured data.
+  - **Binary data representation** is extremely fast and takes almost no space on the wire **but** requires specialized tools to decode and inspect. As of now, this tool is only planned.
 
 # Parts
-AMOGUS consists of four closely linked parts:
+SpeedAPI consists of four closely linked parts:
   - **Wire protocol.** Think of it as the main specification behind all this. It dictates how basic data types and structures that build upon them are encoded, decoded and validated.
-  - **Script for Ubiquitous Structures (SUS).** The description language so that you don't have to define the structures in all languages you're going to be using. The compiler can theoretically output to many if not all mainstream languages, but only TypeScript is implemented for now. Feel free to send a PR to [this repo](https://github.com/amogus-api/susc) with an output module for your favorite language!
+  - **Script for Ubiquitous Structures (SUS).** The description language so that you don't have to define the structures in all languages you're going to be using. The compiler can theoretically output to all mainstream languages, but only TypeScript is implemented for now. Feel free to send a PR to [this repo](https://github.com/speedapi/susc) with an output module for your favorite language!
   - **Wire protocol implementations.** A library for each of the supported languages that can, using output from the compiler, perform actual communication.
-  - **Implied Minimal Protocol Object, Structure and Thing Omission Resolution (IMPOSTOR).** Basically just a fancy name for the SUS standard library that defines some basic common things. Not required but highly recommended. Use it by writing `include impostor.sus`
+  - **Implied Minimal Protocol Object, Structure and Thing Omission Resolution (IMPOSTOR).** Basically just a fancy name for the SUS standard library that defines some basic common things. Not required but highly recommended. Use it by writing `include impostor`
 
-All official repositories are hosted under [this](https://github.com/amogus-api) organization.
+All official repositories are hosted under [this](https://github.com/speedapi) organization.
 
 # Examples
-  - https://github.com/amogus-api/info/tree/master/amogus-tutorial
-  - https://github.com/yamka-app/sus
+  - https://github.com/speedapi/info/tree/master/speedapi-tutorial
+  - https://github.com/portasynthinca3/blaze
