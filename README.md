@@ -1,5 +1,3 @@
-<img align="right" width="128" src="logos/logo_color.png">
-
 ![License](https://img.shields.io/github/license/speedapi/susc)
 ![Schema not included](https://img.shields.io/badge/schema-not%20included-red)
 ![PRs and issues](https://img.shields.io/badge/PRs%20and%20issues-welcome-brightgreen)
