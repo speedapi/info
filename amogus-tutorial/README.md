@@ -1,14 +1,14 @@
-This is a tutorial on how to write an SpeedAPI-based API client for an imaginary article publishing service with **TypeScript**. Hopefully by the end of it you're going to be able to apply certain key concepts to your actual service.
+This is a tutorial on how to write an AMOGUS-based API client for an imaginary article publishing service with **TypeScript** and **Webpack**. Hopefully by the end of it you're going to be able to apply certain key concepts to your actual service.
 > All `npm` commands in this tutorial are going to be invoked with `pnpm` - a drop-in replacement that doesn't waste disk space. I recommend that you use it too, but you don't have to.
 
 ## Step 1. Creating a project and downloading the necessary tools
 ```console
 $ pip3 install -U susc
-$ mkdir speedapi-tutorial
-$ cd speedapi-tutorial
+$ mkdir amogus-tutorial
+$ cd amogus-tutorial
 $ pnpm init -y
-$ pnpm i @speedapi/driver
-$ pnpm i -D typescript
+$ pnpm i amogus-driver
+$ pnpm i -D webpack webpack-cli sus-loader
 $ mkdir src
 $ touch src/index.ts
 $ touch src/api.sus
@@ -47,9 +47,9 @@ globalmethod sign_up(0) {
     password: Str;
 }
 ```
-Whoa, hold on! What does that `0` there mean? It's the **method value** - a special number that distinguishes this method from others. Why can't SpeedAPI use its name? Because it's a protocol that's aimed at maximum encoding efficiency - it's cheaper to send one number over the wire than a string. This number can range between `0` and `127`, thus giving you a maximum of `128` global methods. You can't have two methods with matching names, and you can't have ones with matching values either.
+Whoa, hold on! What does that `0` there mean? It's the **method value** - a special number that distinguishes this method from others. Why can't AMOGUS use its name? Because it's a protocol that's aimed at maximum encoding efficiency - it's cheaper to send one number over the wire than a string. This number can range between `0` and `127`, thus giving you a maximum of `128` global methods. You can't have two methods with matching names, and you can't have ones with matching values either.
 
-We're not quite pushing SpeedAPI to its limits yet. Let's say that you want to make sure that whatever your clients send you in the `email` field is an email address before you even try to send the confirmation email or whatever - quite a sensible requirement. You can use **validators** to perform this task. Take a look:
+We're not quite pushing AMOGUS to its limits yet. Let's say that you want to make sure that whatever your clients send you in the `email` field is an email address before you even try to send the confirmation email or whatever - quite a sensible requirement. You can use **validators** to perform this task. Take a look:
 ```sus
 globalmethod sign_up(0) {
     email: Str[match: /[^ @]@[^ @]/]; # please don't use this regex in production
@@ -74,7 +74,7 @@ globalmethod sign_up(0) {
     errors { email_in_use, username_taken }
 }
 ```
-That `ErrorCode` **enum** describes all possible errors that all of the methods may return. That `2` means that the members are encoded using a 2-byte (16-bit) number, giving you a maximum of `65536` members. Each member also has a **value** associated with it - just like in the case of methods, it's used to identify them when sent over the wire. The `errors` declaration describes which of the errors this specific method may return. **Note**: the server also sends a human-readable error message along with this machine-readable code. What exactly is sent in that message is entirely up to you and is specified by the server code. **Note**: If any of the validations fail, the server-side SpeedAPI library will automatically return a `validation_failed` error before any data even reaches your code.
+That `ErrorCode` **enum** describes all possible errors that all of the methods may return. That `2` means that the members are encoded using a 2-byte (16-bit) number, giving you a maximum of `65536` members. Each member also has a **value** associated with it - just like in the case of methods, it's used to identify them when sent over the wire. The `errors` declaration describes which of the errors this specific method may return. **Note**: the server also sends a human-readable error message along with this machine-readable code. What exactly is sent in that message is entirely up to you and is specified by the server code. **Note**: If any of the validations fail, the server-side AMOGUS library will automatically return a `validation_failed` error before any data even reaches your code.
 
 ### Logging in
 Great! Now that the user has an account, they can log in. Just kidding! They can't, because we haven't yet written a method for that.
@@ -100,7 +100,7 @@ globalmethod log_in(1) {
 ```
 Now we have. Two new directives: `returns`, which specifies the return fields and `ratelimit` which specifies the rate limit. The time interval can be anything - from `[number]ms` to `[number]y`: `ms`, `s`, `m`, `h`, `d`, `mo`, `y`.
 
-Let's sprinkle in some docstrings! They're not comments: comments are completely ignored, whereas docstrings are emitted in the output, and are especially useful in combination with the `html` output module. **They** _support_ **_markdown_**!
+Let's sprinkle in some docstrings! They're different from comments: comments are completely ignored, whereas docstrings are emitted in the output, and are especially useful in combination with the `html` output module. **They** _support_ **_markdown_**!
 ```
 include impostor.sus
 
@@ -193,7 +193,7 @@ Lastly, you may have noticed these messages from the compiler:
 
 ![](images/3.png)
 
-We don't yet have a logo for our service, nor do we have a name. I'm going to name it "High", because I'm not good at coming up with sensible names, and this imaginary project is kind of similar to Medium. Let's put `set html_topbar_title HighAPI` at the top of our file and run that command again:
+We don't yet have a logo for our service, nor do we have a name. I'm going to name it "High", because (as you could probably already tell) i'm not good at coming up with sensible names, and this imaginary project is not at all similar in concept to Medium. Let's put `set html_topbar_title High API` at the top of our file and run that command again:
 
 ![](images/4.png)
 
@@ -208,10 +208,9 @@ entity Article(1) {
     contents: opt(0) Str;
 }
 ```
-  - Every entity must have a numeric type ID for the same reason as with global methods, though in this case it can only range from `0` to `63`.
-  - Every entity must have an `id` field of any type. The value of this field distinguishes particular instances of this entity, and the server must ensure that there's only 0 or 1 entity instances with a given **id**.
-  - The `Int(8)` type represents an 8-byte (64-bit) nonnegative (0 or more) integer. Notice that the `8` is inside parentheses instead of square brackets because it's an **argument** to this type, not a validator. `Str`s do not require any arguments, and it's okay to omit the parentheses in that case. `Int`s can be validated too, by testing whether or not the value is in a range like this: `Int(1)[val: 30..40]`.
-  - This `opt(0)` means that the field is **optional**. Why would such an important field be optional? Because we may get an article in two different contexts: first, in response to a "I know the id, give me the article" request, and second, in response to a "give me the list of all articles that user [id] has published". It's more efficient to skip sending the contents in the latter case because we don't need them anyway. SpeedAPI uses the number `0` to distinguish this particular optional field from other ones. It can range from `0` to `127`, giving you a maximum of `128` optional fields per entity type. The number of normal (required) fields is unlimited. **Note**: Method parameters/return values can be marked as optional as well.
+  - Every entity must have an `id` of type `Int(8)`. The value of this field distinguishes particular instances of this entity, and the server must ensure that there's only 0 or 1 entity instances with a given **id**.
+  - The `Int(8)` type is an 8-byte (64-bit) nonnegative (0 or more) integer. Notice that the `8` is inside parentheses instead of square brackets because it's an **argument** to this type, not a validator. `Str`s do not require any arguments, so that's why we omitted the parentheses before. `Int`s can be validated too, by testing whether or not the value is in a range like this: `Int(1)[val: 30..40]`.
+  - This `opt(0)` means that the field is **optional**. Why would such an important field be optional? Because we may get an article in two different contexts: first, in response to a "I know the id, give me the article" request, and second, in response to a "give me the list of all articles that user [id] has published". It's more efficient to skip sending the contents in the latter case because we don't need them anyway. AMOGUS uses the number `0` to distinguish this particular optional field from other ones. It can range from `0` to `127`, giving you a maximum of `128` optional fields per entity type. The number of normal (required) fields is unlimited. **Note**: Method parameters/return values can be marked as optional as well.
   - Notice that we don't restrict `contents` by length simply because the `Str` type itself limits the length: it can't exceed 65536 bytes because of the way data is encoded. **Note**: Bytes does not equal characters! A Latin character may only take up one byte; Cyrillic ones usually take up two; Chinese and Japanese symbols tend to span 3-4 bytes; and emojis can take up significantly more space - from 3-4 bytes for simple ones to something like 🤦🏼‍♂️ that [actually spans 5 codepoints and takes up 17 whole bytes](https://hsivonen.fi/string-length/)! Don't worry: 64 KB is plenty of data - this tutorial up to this point (excluding the images) is around 11.5 KB. **Note**: The `Str[len]` validator validates length based on the number of Unicode codepoints, not the number of bytes. That emoji from before is thus going to be counted as 5 characters by `Str[len]`.
 
 ### Publishing articles
@@ -248,7 +247,7 @@ entity Article(1) {
     }
 }
 ```
-You can have up to `127` dynamic methods per entity as value `127` is reserved for the "update entity value" operation. Notice that `create(0)` and `like(0)` are not in conflict because one is static and the other one is not.
+You can have up to `128` dynamic methods per entity. Notice that `create(0)` and `like(0)` are not in conflict because static methods are separate from dynamic ones.
 
 ### User entities
 Now that we know what entities are, we can create a `User` entity and update our `log_in` method so that it returns a reference to the user account that your backend has hopefully created when we called `sign_up`
@@ -320,26 +319,27 @@ again and browse the final docs.
 
 ![](images/5.png)
 
-**Note**: This `ArticleFieldSelect` bitfield was generated automatically. It's not generated by newer versions of SUSC and I'm too lazy to update this screenshot :)
+**Note**: This `ArticleFieldSelect` bitfield was generated automatically.
 
-We have learned about almost anything there is to SpeedAPI. The two things that we haven't talked about yet are **bitfields** and **confirmations**, the latter being an extremely powerful mechanism that we're going to explore later.
+We have learned about almost anything there is to AMOGUS. The two things that we haven't talked about yet are **bitfields** and **confirmations**, the latter being an extremely powerful mechanism that we're going to explore later.
 
 ## Developing the client
-Run the compiler:
+First of all, launch the compiler in watch mode in the background so that it provides TS declarations for the SUS file.
+```console
+$ susc --gen-ts src/api.sus
+OR
+$ susc -t src/api.sus
 ```
-$ susc -l ts src/api.sus
-```
-and put this in `src/index.ts`:
+Put this in `index.ts`:
 ```ts
 // import the libraries
-import * as speedapi from "@speedapi/driver";
-import { TlsClient } from "@speedapi/driver/transport/node";
+import * as amogus from "amogus-driver";
 // load our protocol definition
-import * as api from "./api_output/ts/index";
+import * as api from "./api.sus";
 
 // create the session
 type ApiType = ReturnType<typeof api.$specSpace>;
-const session = api.$bind(new TlsClient<ApiType>(api.$specSpace, {
+const session = api.$bind(new amogus.transport.node.TlsClient<ApiType>(api.$specSpace, {
     host: "my.awesomeservice.com",
     port: 1234
 }));
@@ -363,7 +363,7 @@ If we correct the password to be a string, say `"123456"`, the error disappears.
 
 **Note**: Only the type is validated at compile time. Validators in square brackets run at run time. Even though we've specified a regex for our `email` field, TypeScript won't complain if we assign `"not.an.email"` to it.
 
-Static methods do not need an entity instance and are called like this:
+Static methods do not need an entity instance, and are called like this:
 ```ts
 const contents = `
 # Welcome!
@@ -384,16 +384,15 @@ await article.postComment({
 ```
 
 ## Developing the server
-The server-side API is inspired by the way GenServers work in Erlang and Elixir. The library keeps track of all clients and session states and calls your handler whenever some event happens. Servers are created like this:
+The server-side API is inspired by the way GenServers work in Erlang and Elixir. `amogus-driver` keeps track of the clients and session states and calls your handler whenever some event happens. Servers are created like this:
 ```ts
-import * as speedapi from "@speedapi/driver";
-import { TlsListener } from "@speedapi/driver/transport/node";
-import * as api from "./api_output/ts/index";
+import * as amogus from "amogus-driver";
+import * as api from "./api.sus";
 import * as fs from "fs";
 
 // Create a TLS listener (acceptor)
 type ApiType = ReturnType<typeof api.$specSpace>;
-const listener = new TlsListener<ApiType>(api.$specSpace, {
+const listener = new amogus.transport.node.TlsListener<ApiType>(api.$specSpace, {
     port: 1234,
     cert: fs.readFileSync(__dirname + "/certs/server.cert"), // read certs
     key: fs.readFileSync(__dirname + "/certs/server.key")
@@ -404,8 +403,8 @@ const listener = new TlsListener<ApiType>(api.$specSpace, {
     
     // Servers store an arbitrary value called the state; it gets passed to your event handlers. They can, in turn, modify it.
     // We'll use an object to store the ID of the user
-    type State = { userId?: bigint };
-    const session = new speedapi.Server(client, { userId: null } as State);
+    type State = { userId?: number };
+    const session = new amogus.Server(client, { userId: null } as State);
     const boundApi = api.$bind(client); // use this instead of `api` to access the things you've defined
 
     // sign_up() handler
@@ -426,7 +425,7 @@ const listener = new TlsListener<ApiType>(api.$specSpace, {
         await method.return({ }); // This method has no return values, but we still have to call .return, otherwise the client will timeout waiting for the response.
 
         // We don't return anything here, so the state won't be modified.
-        // However, a `return { userId: 123n };` here will update the state.
+        // However, a `return { userId: 123 };` here will update the state.
     });
 });
 ```
@@ -435,13 +434,13 @@ const listener = new TlsListener<ApiType>(api.$specSpace, {
 ...that weren't touched upon in the High example
 
 ## Pushing entities to the client
-Being a full-duplex protocol, SpeedAPI allows the server to send data to the client without a prior request.
+Being a full-duplex protocol, AMOGUS allows the server to send data to the client without a prior request.
 ```ts
 // Here we're assuming that `client` is an instance of Session on the server side, like TlsServer or DummyServer, and that `boundApi` is the result of calling `api.$bind(client)`
 await client.pushEntity(new boundApi.User({
     id: 123,
     name: "Imaginary Name"
-}) as speedapi.ValuedEntity);
+}) as amogus.ValuedEntity);
 ```
 To handle entity updates on the client side, we need to add an event handler
 ```ts
@@ -458,7 +457,6 @@ client.subscribe((event) => {
     }
 });
 ```
-Client-side update events can be abstracted away by the `Cache` class. Read on.
 
 ## Confirmations
 `Confirmation`s are a way to request data from the client in the context of a method invocation by that client. In other words, it's a way to call methods on the client while that client is calling some method on the server. Take a look:
@@ -498,10 +496,10 @@ session.onInvocation("echo", async (method, _state) => {
 
 // Client side
 const { str } = await session.echo({ str: "Hello, World!" }, async (conf) => {
-    // At this point `conf` is any `speedapi.Confirmation`, let's narrow it down
+    // At this point `conf` is any `amogus.Confirmation`, let's narrow it down
     if(conf instanceof session.Captcha) {
         console.log(`Got captcha with url ${conf.request.url}`);
-        return { code: "5p33dAp1" }; // our response
+        return { code: "amogus" }; // our response
     }
 });
 ```
@@ -510,30 +508,26 @@ const { str } = await session.echo({ str: "Hello, World!" }, async (conf) => {
 You don't have to set up a server/client pair that communicates over some legitimate protocol like TCP. Instead, you can use the `createDummyPair` function that creates a server and a client that exchange data by passing `Buffer`s to each other. It's aimed primarily towards testing.
 
 ```ts
-import * as speedapi from "@speedapi/driver";
-import { createDummyPair } from "@speedapi/driver/transport/universal";
-import * as api from "./api_output/ts/index";
+import * as amogus from "amogus-driver";
+import * as api from "./test.sus";
 
 type ApiType = ReturnType<typeof api.$specSpace>;
-const { client, server } = createDummyPair<ApiType>(api.$specSpace);
+const { client, server } = amogus.transport.universal.createDummyPair<ApiType>(api.$specSpace);
 
-async function server() {
-    const session = new speedapi.Server(server, null);
+function server() {
+    const session = new amogus.Server(server, null);
     const boundApi = api.$bind(server);
     // ...
 }
 
-async function client() {
+function client() {
     const session = api.$bind(client);
     // ...
 }
-
-void server();
-await client();
 ```
 
 ## Compounds
-Compounds combine several fields together. They can be used like any other type, but unlike other data structures they can be used outside of an API setting, i.e. they allow you to use the same efficient serialization techniques that form the core of SpeedAPI, but without wrapping it into methods, entities and other things. This method of using SpeedAPI can be thought of as a replacement for standalone JSON, BSON, MessagePack and other similar things.
+Compounds combine several fields together. They can be used like any other type, but unlike other data structures they can be used outside of an API setting, i.e. they allow you to use the same efficient serialization techniques that form the core of AMOGUS, but without wrapping it into methods, entities and other things. This method of using AMOGUS can be thought of as a replacement for standalone JSON, BSON, MessagePack and other similar things.
 ```sus
 compound Color {
     r: Int(1);
@@ -558,7 +552,7 @@ Using this over JSON has advantages as well as disadvantages:
 
 You can use it like this:
 ```ts
-import { Serializer } from "@speedapi/driver";
+import { Serializer } from "amogus-driver";
 import { ConfigSpec } from "./config.sus";
 const serializer = new Serializer(ConfigSpec);
 
@@ -576,7 +570,4 @@ config = await serializer.deserialize(binary);
 ```
 
 ## Partial list updates
-TODO
-
-## Cache
 TODO
