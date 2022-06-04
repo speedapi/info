@@ -15,13 +15,75 @@ Some features are double-edged:
   - **Binary data representation** takes almost no time and space **but** requires a specialized tool to decode and inspect. As of now, this tool is only planned.
 
 # Parts
-SpeedAPI consists of four closely linked parts:
+SpeedAPI consists of five closely linked parts:
   - **Wire protocol.** The main specification behind all this. It dictates how basic data types and structures that build upon them are encoded, decoded and validated.
   - **Script for Ubiquitous Structures (SUS).** The description language so that you don't have to define the structures in all languages you're going to be using. The compiler can theoretically output to all mainstream languages, but only TypeScript is implemented for now. Feel free to send a PR to [this repo](https://github.com/speedapi/susc) with an output module for your favorite language!
+  - **The SUS Compiler** that converts SUS definitions to your target programming languages.
   - **Wire protocol implementations.** A library for each of the supported languages that can, using output from the compiler, perform actual communication.
-  - **Implied Minimal Protocol Object, Structure and Thing Omission Resolution (IMPOSTOR).** Basically just a fancy name for the SUS standard library that defines some basic common things. Not required but highly recommended. Use it by writing `include impostor`
+  - **The standard library** that defines some basic common things. Not required but highly recommended. Use it by writing `include impostor`
 
 All official repositories are hosted under [this](https://github.com/speedapi) organization.
+
+# Basic usage
+### Install the compiler
+```
+$ pip3 install susc
+```
+
+### Create a TypeScript project
+```
+$ mkdir speedapi-test
+$ cd speedapi-test
+$ npm init -y
+$ npm i @speedapi/driver
+$ npm i -D typescript ts-node @types/node
+```
+
+### Write a simple API description
+`api.sus`:
+```sus
+globalmethod say_hi(0) {
+    name: Str;
+    returns {
+        greeting: Str;
+    }
+}
+```
+
+### Compile the API
+```
+$ susc -l ts api.sus
+```
+
+### Test your API
+`index.ts`:
+```typescript
+import { Server } from "@speedapi/driver";
+import { createDummyPair } from "@speedapi/driver/transport/universal";
+import * as api from "./api_output/ts/index";
+
+type ApiType = ReturnType<typeof api.$specSpace>;
+const { client, server } = createDummyPair<ApiType>(api.$specSpace);
+const clientSession = api.$bind(client);
+const serverHandler = new Server(server, {});
+
+serverHandler.onInvocation("say_hi", async (method, _) => {
+    await method.return({
+        greeting: `Hello, ${method.params.name}!`
+    });
+});
+
+// you can simply use await in non-top-level contexts :)
+clientSession.sayHi({ name: "reader" }).then(({ greeting }) =>
+    console.log(greeting));
+```
+
+```
+$ npx ts-node index.ts
+```
+
+### Want to learn more?
+Check out the first example below:
 
 # Examples
   - https://github.com/speedapi/info/tree/master/speedapi-tutorial
