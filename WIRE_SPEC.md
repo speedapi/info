@@ -37,7 +37,7 @@ invoke method:
     (E=1)  |I| entity type |   ^
            +-+-+-+-+-+-+-+-+   |
                        +---------------+
-                (I=1)  |   64-bit id   |
+                (I=1)  |      id       |
                        +---------------+
 ```
 update entity/entity update:
