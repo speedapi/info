@@ -7,7 +7,7 @@ $ pip3 install -U susc
 $ mkdir speedapi-tutorial
 $ cd speedapi-tutorial
 $ pnpm init -y
-$ pnpm i @speedapi/driver
+$ pnpm i @speedapi/driver @speedapi/node
 $ pnpm i -D typescript
 $ mkdir src
 $ touch src/index.ts
@@ -333,7 +333,7 @@ and put this in `src/index.ts`:
 ```ts
 // import the libraries
 import * as speedapi from "@speedapi/driver";
-import { TlsClient } from "@speedapi/driver/transport/node";
+import { TlsClient } from "@speedapi/node";
 // load our protocol definition
 import * as api from "./api_output/ts/index";
 
@@ -387,7 +387,7 @@ await article.postComment({
 The server-side API is inspired by the way GenServers work in Erlang and Elixir. The library keeps track of all clients and session states and calls your handler whenever some event happens. Servers are created like this:
 ```ts
 import * as speedapi from "@speedapi/driver";
-import { TlsListener } from "@speedapi/driver/transport/node";
+import { TlsListener } from "@speedapi/node";
 import * as api from "./api_output/ts/index";
 import * as fs from "fs";
 

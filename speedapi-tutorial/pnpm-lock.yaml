@@ -1,13 +1,15 @@
 lockfileVersion: 5.3
 
 specifiers:
-  '@speedapi/driver': ^1.3.1
+  '@speedapi/driver': ^1.4
+  '@speedapi/node': ^1.0
   '@types/node': ^17.0.23
   ts-node: ^10.7.0
   typescript: ^4.6.3
 
 dependencies:
-  '@speedapi/driver': 1.3.1_typescript@4.6.3
+  '@speedapi/driver': 1.4.0_typescript@4.6.3
+  '@speedapi/node': 1.0.0_typescript@4.6.3
 
 devDependencies:
   '@types/node': 17.0.23
@@ -28,13 +30,27 @@ packages:
       '@cspotcode/source-map-consumer': 0.8.0
     dev: true
 
-  /@speedapi/driver/1.3.1_typescript@4.6.3:
-    resolution: {integrity: sha512-8MGsoT+gPYXybYRAwx9cKmn39+nXD8/5g3+M1Dd7zIYZxSaRq3Dq2ejE1/uov6WkFkHLFim1iFOt4yQy9EB6gQ==}
+  /@speedapi/driver/1.4.0_typescript@4.6.3:
+    resolution: {integrity: sha512-x8VDuuaucGajM1nKOx6GeV3H+b9PfzVLQKtAl33l4HM8aE7PrqwkgLmuADa5JcrEisup0zEpt7EGmTuWCMI1vw==}
     peerDependencies:
       typescript: ^4.6
     dependencies:
       tslib: 2.3.1
       typescript: 4.6.3
+    dev: false
+
+  /@speedapi/node/1.0.0_typescript@4.6.3:
+    resolution: {integrity: sha512-eKMSVZeFUBiZsxj3nC2heBGYk1QJ28LW6aImBWE7G+3V6j3NjhgyUktPFZ2LVQb5UuAOw0ZlIV3S32U/CH9YYw==}
+    peerDependencies:
+      typescript: ^4.6
+    dependencies:
+      '@speedapi/driver': 1.4.0_typescript@4.6.3
+      tslib: 2.3.1
+      typescript: 4.6.3
+      ws: 8.7.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
     dev: false
 
   /@tsconfig/node10/1.0.8:
@@ -129,6 +145,19 @@ packages:
   /v8-compile-cache-lib/3.0.0:
     resolution: {integrity: sha512-mpSYqfsFvASnSn5qMiwrr4VKfumbPyONLCOPmsR3A6pTY/r0+tSaVbgPWSAIuzbk3lCTa+FForeTiO+wBQGkjA==}
     dev: true
+
+  /ws/8.7.0:
+    resolution: {integrity: sha512-c2gsP0PRwcLFzUiA8Mkr37/MI7ilIlHQxaEAtd0uNMbVMoy8puJyafRlm0bV9MbGSabUPeLrRRaqIBcFcA2Pqg==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: ^5.0.2
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+    dev: false
 
   /yn/3.1.1:
     resolution: {integrity: sha512-Ux4ygGWsu2c7isFWe8Yu1YluJmqVhxqK2cLXNQA5AcC3QfbGNpM7fu0Y8b/z16pXLnFxZYvWhd3fhBY9DLmC6Q==}

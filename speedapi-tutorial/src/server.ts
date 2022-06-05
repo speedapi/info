@@ -1,5 +1,5 @@
 import * as speedapi from "@speedapi/driver";
-import { TlsListener } from "@speedapi/driver/transport/node";
+import { TlsListener } from "@speedapi/node";
 import * as api from "./api_output/ts/index";
 import * as fs from "fs";
 
@@ -13,14 +13,13 @@ const userDb: {
 } = {};
 
 // create a TLS listener (acceptor)
-type ApiType = ReturnType<typeof api.$specSpace>;
-new TlsListener<ApiType>(api.$specSpace, {
+new TlsListener(api.$specSpace, {
     port: 1234,
     cert: fs.readFileSync(__dirname + "/certs/server.cert"),
     key: fs.readFileSync(__dirname + "/certs/server.key"),
     rejectUnauthorized: false
 }, async (client) => {
-    console.log("client connected");
+    console.log("⚡ client connected");
     // the second argument is the initial state
     // it will be passed down to the method handlers, they can also modify it
     type State = { userId?: bigint };
@@ -30,7 +29,7 @@ new TlsListener<ApiType>(api.$specSpace, {
     // sign_up() handler
     session.onInvocation("sign_up", async (method, _state) => {
         const params = method.params;
-        console.log(`sign_up: email: "${params.email}", name: "${params.username}", password: "${params.password}"`);
+        console.log(`🆕 sign_up: email: "${params.email}", name: "${params.username}", password: "${params.password}"`);
 
         // find email/username duplicates
         if(Object.values(userDb).some(x => x.email === params.email)) {
@@ -44,14 +43,14 @@ new TlsListener<ApiType>(api.$specSpace, {
         // create the user
         const id = BigInt(Math.floor(Math.random() * 100000)); // don't do this in production
         userDb[String(id)] = { id, email: params.email, name: params.username, password: params.password };
-        console.log(`created user with id ${id}`);
+        console.log(`👤 created user with id ${id}`);
         await method.return({ });
     });
 
     // log_in() handler
     session.onInvocation("log_in", async (method, _state) => {
         const params = method.params;
-        console.log(`log_in: email: "${params.email}", password: "${params.password}"`);
+        console.log(`➡️ log_in: email: "${params.email}", password: "${params.password}"`);
 
         // find the user
         const user = Object.values(userDb).find(x => x.email === params.email);
@@ -71,7 +70,7 @@ new TlsListener<ApiType>(api.$specSpace, {
 
     session.onInvocation("User.get", async (method, state) => {
         const params = method.params;
-        console.log(`user_get: user: ${params.id}`);
+        console.log(`⬇️ user_get: user: ${params.id}`);
 
         // find the user
         const user = userDb[String(params.id)];
@@ -93,8 +92,8 @@ new TlsListener<ApiType>(api.$specSpace, {
     });
 
     session.onClose((state) => {
-        console.log(`client (id ${state.userId}) disconnected`);
+        console.log(`❌ client (id ${state.userId}) disconnected`);
     });
 });
 
-console.log("Listening on port 1234");
+console.log("\n🎉 Listening on port 1234");
