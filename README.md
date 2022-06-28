@@ -16,7 +16,7 @@ Some features are double-edged:
 
 # Parts
 SpeedAPI consists of five closely linked parts:
-  - **Wire protocol.** The main specification behind all this. It dictates how basic data types and structures that build upon them are encoded, decoded and validated.
+  - **Wire protocol.** The main specification behind all this. It dictates how basic data types and structures that build upon them are encoded, decoded and validated. You can read the [specification](WIRE_SPEC.md)
   - **Script for Ubiquitous Structures (SUS).** The description language so that you don't have to define the structures in all languages you're going to be using. The compiler can theoretically output to all mainstream languages, but only TypeScript is implemented for now. Feel free to send a PR to [this repo](https://github.com/speedapi/susc) with an output module for your favorite language!
   - **The SUS Compiler** that converts SUS definitions to your target programming languages.
   - **Wire protocol implementations.** A library for each of the supported languages that can, using output from the compiler, perform actual communication.
