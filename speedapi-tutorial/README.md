@@ -338,8 +338,7 @@ import { TlsClient } from "@speedapi/node";
 import * as api from "./api_output/ts/index";
 
 // create the session
-type ApiType = ReturnType<typeof api.$specSpace>;
-const session = api.$bind(new TlsClient<ApiType>(api.$specSpace, {
+const session = api.$bind(new TlsClient(api.$specSpace, {
     host: "my.awesomeservice.com",
     port: 1234
 }));
@@ -392,8 +391,7 @@ import * as api from "./api_output/ts/index";
 import * as fs from "fs";
 
 // Create a TLS listener (acceptor)
-type ApiType = ReturnType<typeof api.$specSpace>;
-const listener = new TlsListener<ApiType>(api.$specSpace, {
+const listener = new TlsListener(api.$specSpace, {
     port: 1234,
     cert: fs.readFileSync(__dirname + "/certs/server.cert"), // read certs
     key: fs.readFileSync(__dirname + "/certs/server.key")
@@ -514,8 +512,7 @@ import * as speedapi from "@speedapi/driver";
 import { createDummyPair } from "@speedapi/driver/transport/universal";
 import * as api from "./api_output/ts/index";
 
-type ApiType = ReturnType<typeof api.$specSpace>;
-const { client, server } = createDummyPair<ApiType>(api.$specSpace);
+const { client, server } = createDummyPair(api.$specSpace);
 
 async function server() {
     const session = new speedapi.Server(server, null);

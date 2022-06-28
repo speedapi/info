@@ -7,7 +7,7 @@
 # What is SpeedAPI?
 This is a protocol toolkit designed to be used in high-throughput realtime APIs.
   - **End-to-end API development.** SpeedAPI is an integrated tool for API development, not just a standalone data representation format like JSON or MessagePack. It can be used as one too!
-  - **Transaction-based bidirectional data transfer.** Once a connection is established, both the client and the server can send data to each other at any time. Client-to-server requests are encapsulated ino time concurrent transactions that may also require some data later on - like if you have an endpoint that requires a CAPTCHA only some of the time.
+  - **Transaction-based bidirectional data transfer.** Once a connection is established, both the client and the server can send data to each other at any time. Client-to-server requests are encapsulated in concurrent transactions that may also require some data later on - like if you have an endpoint that requires a CAPTCHA only some of the time.
   - **Smaller data representation.** REST uses JSON to represent structured data, which takes up significantly more space compared to SpeedAPI.
 
 Some features are double-edged:
@@ -62,8 +62,7 @@ import { Server } from "@speedapi/driver";
 import { createDummyPair } from "@speedapi/driver/transport/universal";
 import * as api from "./api_output/ts/index";
 
-type ApiType = ReturnType<typeof api.$specSpace>;
-const { client, server } = createDummyPair<ApiType>(api.$specSpace);
+const { client, server } = createDummyPair(api.$specSpace);
 const clientSession = api.$bind(client);
 const serverHandler = new Server(server, {});
 
